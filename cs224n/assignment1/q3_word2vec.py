@@ -15,7 +15,9 @@ def normalizeRows(x):
     """
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    sqrt_sum = np.sqrt(np.sum(np.power(x, 2), axis=1)).reshape((2,1))
+    x = x / sqrt_sum
+    #x = x / sqrt_sum 
     ### END YOUR CODE
 
     return x
@@ -58,7 +60,15 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     """
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    y = np.zeros(outputVectors.shape[0])
+    y[target] = 1
+    y_hat = softmax(outputVectors.dot(predicted)).flatten()
+    cost = np.sum(y * np.log(y_hat)) * (-1)
+
+    diff = y_hat - y
+    grapPred = outputVectors.T.dot(diff.T)
+    
+    grad = np.outer(diff, predicted)
     ### END YOUR CODE
 
     return cost, gradPred, grad
@@ -239,4 +249,4 @@ def test_word2vec():
 
 if __name__ == "__main__":
     test_normalize_rows()
-    test_word2vec()
+    #test_word2vec()
