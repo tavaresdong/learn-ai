@@ -102,11 +102,24 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
 
     # Sampling of indices is done for you. Do not modify this if you
     # wish to match the autograder and receive points!
+
     indices = [target]
     indices.extend(getNegativeSamples(target, dataset, K))
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    grad = np.zeros(outputVectors.shape)
+
+    predictedProb = sigmoid(outputVectors[target].dot(predicted))
+    cost = - np.log(predictedProb)
+    gradPred = outputVectors[target] * (predictedProb - 1.0)
+    grad[target] = predicted * (predictedProb - 1.0)
+    for idx in indices[1:]:
+        u = outputVectors[idx]
+        product = u.dot(predicted)
+        cost -= np.log(sigmoid(-product))
+        gradPred += u * sigmoid(product)
+        grad[idx] += predicted * sigmoid(product)
+
     ### END YOUR CODE
 
     return cost, gradPred, grad
@@ -231,10 +244,10 @@ def test_word2vec():
     gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
         skipgram, dummy_tokens, vec, dataset, 5, softmaxCostAndGradient),
         dummy_vectors)
-    #gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
-    #    skipgram, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient),
-    #    dummy_vectors)
-    print "\n==== Gradient check for CBOW      ===="
+    gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
+        skipgram, dummy_tokens, vec, dataset, 5, negSamplingCostAndGradient),
+        dummy_vectors)
+    #print "\n==== Gradient check for CBOW      ===="
     #gradcheck_naive(lambda vec: word2vec_sgd_wrapper(
     #    cbow, dummy_tokens, vec, dataset, 5, softmaxCostAndGradient),
     #    dummy_vectors)
@@ -245,9 +258,9 @@ def test_word2vec():
     print "\n=== Results ==="
     print skipgram("c", 3, ["a", "b", "e", "d", "b", "c"],
         dummy_tokens, dummy_vectors[:5,:], dummy_vectors[5:,:], dataset)
-    #print skipgram("c", 1, ["a", "b"],
-    #    dummy_tokens, dummy_vectors[:5,:], dummy_vectors[5:,:], dataset,
-    #    negSamplingCostAndGradient)
+    print skipgram("c", 1, ["a", "b"],
+        dummy_tokens, dummy_vectors[:5,:], dummy_vectors[5:,:], dataset,
+        negSamplingCostAndGradient)
     #print cbow("a", 2, ["a", "b", "c", "a"],
     #    dummy_tokens, dummy_vectors[:5,:], dummy_vectors[5:,:], dataset)
     #print cbow("a", 2, ["a", "b", "a", "c"],
