@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -95,34 +96,39 @@ public class PositionalWithinK {
     {
     	if (p1posting.docID == p2posting.docID)
     	{
+    		List<Integer> l = new LinkedList<>();
     		Iterator<Integer> posp1 = p1posting.positions();
     		Iterator<Integer> posp2 = p2posting.positions();
     		Integer pp1 = popNextOrNull(posp1);
     		Integer pp2 = popNextOrNull(posp2);
     		
-    		for (; pp1 != null && pp2 != null; )
+    		for (; pp1 != null; )
     		{
-    			if (pp1 + k < pp2)
+    			while (pp2 != null)
     			{
-    				pp1 = popNextOrNull(posp1);
-    			}
-    			else if (pp2 + k < pp1)
-    			{
+    				if (Math.abs(pp1 - pp2) <= k)
+    				{
+    					l.add(pp2);
+    				}
+    				else if (pp2 > pp1)
+    				{
+    					break;
+    				}
+    				
     				pp2 = popNextOrNull(posp2);
     			}
-    			else
+    			
+    			while (!l.isEmpty() && Math.abs(pp1 - l.get(0)) > k)
     			{
-    				// An inner loop to iterate over the whole second list
-    				Iterator<Integer> pinner = p2posting.positions();
-    				for (Integer ppcur = popNextOrNull(pinner); ppcur != null; ppcur = popNextOrNull(pinner))
-    				{
-    					if (Math.abs(pp1 - ppcur) <= k)
-    					{
-            				answer.add(new AnswerElement(p1posting.docID, pp1, ppcur));
-    					}
-    				}
-    				pp1 = popNextOrNull(posp1);
+    				l.remove(0);
     			}
+    			
+    			for (Integer i : l)
+    			{
+    				answer.add(new AnswerElement(p1posting.docID, pp1, i));
+    			}
+    			
+    			pp1 = popNextOrNull(posp1);
     		}
     		
     		p1posting = popNextOrNull(p1);
