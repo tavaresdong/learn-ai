@@ -21,6 +21,9 @@ data, n_samples = utils.read_birth_life_data(DATA_FILE)
 # Step 2: create Dataset and iterator
 dataset = tf.data.Dataset.from_tensor_slices((data[:,0], data[:,1]))
 
+# Another way: repeat the dataset to create 100 epochs
+dataset = dataset.repeat(100)
+
 iterator = dataset.make_initializable_iterator()
 X, Y = iterator.get_next()
 
@@ -45,18 +48,29 @@ with tf.Session() as sess:
     writer = tf.summary.FileWriter('./graphs/linear_reg', sess.graph)
     
     # Step 8: train the model for 100 epochs
-    for i in range(100):
-        sess.run(iterator.initializer) # initialize the iterator
-        total_loss = 0
-        try:
-            while True:
-                _, l = sess.run([optimizer, loss]) 
-                total_loss += l
-        except tf.errors.OutOfRangeError:
-            pass
-            
-        print('Epoch {0}: {1}'.format(i, total_loss/n_samples))
+    #for i in range(100):
 
+    #    # Each epoch: we initialize the iterator once again
+    #    sess.run(iterator.initializer) # initialize the iterator
+    #    total_loss = 0
+    #    try:
+    #        while True:
+    #            _, l = sess.run([optimizer, loss]) 
+    #            total_loss += l
+    #    except tf.errors.OutOfRangeError:
+    #        pass
+    #        
+    #    print('Epoch {0}: {1}'.format(i, total_loss/n_samples))
+
+    sess.run(iterator.initializer) # initialize the iterator
+    total_loss = 0
+    try:
+        while True:
+            _, l = sess.run([optimizer, loss]) 
+            total_loss += l
+    except tf.errors.OutOfRangeError:
+        pass
+        
     # close the writer when you're done using it
     writer.close() 
     

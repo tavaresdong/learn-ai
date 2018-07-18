@@ -65,10 +65,12 @@ with tf.Session() as sess:
     # Step 9: output the values of w and b
     w_out, b_out = sess.run([w, b])
 
+    print("w is {0} and b is {1}".format(w_out, b_out))
+
 print('Took: %f seconds' %(time.time() - start))
 
 # uncomment the following lines to see the plot 
-plt.plot(data[:,0], data[:,1], 'bo', label='Real data')
-plt.plot(data[:,0], data[:,0] * w_out + b_out, 'r', label='Predicted data')
-plt.legend()
-plt.show()
+#plt.plot(data[:,0], data[:,1], 'bo', label='Real data')
+#plt.plot(data[:,0], data[:,0] * w_out + b_out, 'r', label='Predicted data')
+#plt.legend()
+#plt.show()

@@ -13,6 +13,12 @@ import tensorflow as tf
 
 import utils
 
+def huber_loss(labels, predictions, delta=14.0):
+    residual = tf.abs(labels - predictions)
+    def f1(): return 0.5 * tf.square(residual)
+    def f2(): return delta * residual - 0.5 * tf.square(delta)
+    return tf.cond(residual < delta, f1, f2)
+
 DATA_FILE = 'birth_life_2010.txt'
 
 # Step 1: read in data from the .txt file
@@ -31,7 +37,8 @@ Y_predicted = w * X + b
 
 # Step 5: use the squared error as the loss function
 # you can use either mean squared error or Huber loss
-loss = tf.square(Y - Y_predicted, name='loss')
+#loss = tf.square(Y - Y_predicted, name='loss')
+loss = huber_loss(Y, Y_predicted)
 # loss = utils.huber_loss(Y, Y_predicted)
 
 # Step 6: using gradient descent with learning rate of 0.001 to minimize loss
@@ -40,28 +47,29 @@ optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001).minimize(loss
 start = time.time()
 writer = tf.summary.FileWriter('./graphs/linear_reg', tf.get_default_graph())
 with tf.Session() as sess:
-	# Step 7: initialize the necessary variables, in this case, w and b
-	sess.run(tf.global_variables_initializer()) 
-	
-	# Step 8: train the model for 100 epochs
-	for i in range(100): 
-		total_loss = 0
-		for x, y in data:
-			# Session execute optimizer and fetch values of loss
-			_, l = sess.run([optimizer, loss], feed_dict={X: x, Y:y}) 
-			total_loss += l
-		print('Epoch {0}: {1}'.format(i, total_loss/n_samples))
-
-	# close the writer when you're done using it
-	writer.close() 
-	
-	# Step 9: output the values of w and b
-	w_out, b_out = sess.run([w, b]) 
+    # Step 7: initialize the necessary variables, in this case, w and b
+    sess.run(tf.global_variables_initializer()) 
+        
+    # Step 8: train the model for 100 epochs
+    for i in range(100): 
+        total_loss = 0
+        for x, y in data:
+            # Session execute optimizer and fetch values of loss
+            _, l = sess.run([optimizer, loss], feed_dict={X: x, Y:y}) 
+            total_loss += l
+        print('Epoch {0}: {1}'.format(i, total_loss/n_samples))
+        
+        # close the writer when you're done using it
+    writer.close() 
+        
+        # Step 9: output the values of w and b
+    w_out, b_out = sess.run([w, b]) 
+    print("w is {0} and b is {1}".format(w_out, b_out))
 
 print('Took: %f seconds' %(time.time() - start))
 
 # plot the results
-plt.plot(data[:,0], data[:,1], 'bo', label='Real data')
-plt.plot(data[:,0], data[:,0] * w_out + b_out, 'r', label='Predicted data')
-plt.legend()
-plt.show()
+#plt.plot(data[:,0], data[:,1], 'bo', label='Real data')
+#plt.plot(data[:,0], data[:,0] * w_out + b_out, 'r', label='Predicted data')
+#plt.legend()
+#plt.show()
