@@ -39,22 +39,37 @@ def word2vec(dataset):
     ########## TO DO ############
     #############################
 
+    # center_wors is of shape [batch_size]
+    # target_words is of shape [batch_size, 1]
+    iterator = dataset.make_initializable_iterator()
+    center_words, target_words = iterator.get_next()
+
     # Step 2: define weights. 
     # In word2vec, it's the weights that we care about
     #############################
     ########## TO DO ############
     #############################
+    embed_matrix = tf.get_variable("embed_matrix",
+                                   shape=[VOCAB_SIZE, EMBED_SIZE],
+                                   initializer=tf.random_uniform_initializer())
 
     # Step 3: define the inference (embedding lookup)
     #############################
     ########## TO DO ############
     #############################
+    # embed is shape [batch_size, embed_size]
+    embed = tf.nn.embedding_lookup(embed_matrix, center_words, name='embed')
 
     # Step 4: define loss function
     # construct variables for NCE loss
     #############################
     ########## TO DO ############
     #############################
+    nce_weight = tf.get_variable('nce_weight',
+                                 shape=[VOCAB_SIZE, EMBED_SIZE],
+                                 initializer=tf.truncated_normal_initializer(stddev=1.0 / (EMBED_SIZE ** 0.5)))
+    nce_bias = tf.get_variable('nce_bias', initializer=tf.zeros([VOCAB_SIZE]))
+
 
     # define loss function to be NCE loss function
     #############################
@@ -66,6 +81,14 @@ def word2vec(dataset):
     #############################
     ########## TO DO ############
     #############################
+    loss = tf.reduce_mean(tf.nn.nce_loss(weights=nce_weight, 
+                                        biases=nce_bias, 
+                                        labels=target_words, 
+                                        inputs=embed, 
+                                        num_sampled=NUM_SAMPLED, 
+                                        num_classes=VOCAB_SIZE), name='loss')
+
+    optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE).minimize(loss)
     
     utils.safe_mkdir('checkpoints')
     with tf.Session() as sess:
@@ -74,6 +97,8 @@ def word2vec(dataset):
         #############################
         ########## TO DO ############
         #############################
+        sess.run(iterator.initializer)
+        sess.run(tf.global_variables_initializer())
 
         total_loss = 0.0 # we use this to calculate late average loss in the last SKIP_STEP steps
         writer = tf.summary.FileWriter('graphs/word2vec_simple', sess.graph)
@@ -84,7 +109,7 @@ def word2vec(dataset):
                 #############################
                 ########## TO DO ############
                 #############################
-                loss_batch = None
+                loss_batch, _ = sess.run([loss, optimizer])
 
                 total_loss += loss_batch
 
