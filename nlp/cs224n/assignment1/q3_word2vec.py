@@ -60,14 +60,17 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     """
 
     ### YOUR CODE HERE
+    # Here y and y_hat are all in one dimension
     y = np.zeros(outputVectors.shape[0])
     y[target] = 1
     y_hat = softmax(outputVectors.dot(predicted)).flatten()
     cost = np.sum(y * np.log(y_hat)) * (-1)
 
     diff = y_hat - y
-    gradPred = outputVectors.T.dot(diff.T)
+    gradPred = outputVectors.T.dot(diff)
 
+    # diff: [d0, ..., d10000], predicted:[p0, ..., p300]
+    # then grad is 10000 * 300, which is of the same shape of outputVectors
     grad = np.outer(diff, predicted)
     ### END YOUR CODE
 
