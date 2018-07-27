@@ -121,7 +121,7 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
         product = u.dot(predicted)
         cost -= np.log(sigmoid(-product))
         gradPred += u * sigmoid(product)
-        grad[idx] += predicted * sigmoid(product)
+        grad[idx] += predicted * (sigmoid(-product) - 1) * (-1)
 
     ### END YOUR CODE
 
