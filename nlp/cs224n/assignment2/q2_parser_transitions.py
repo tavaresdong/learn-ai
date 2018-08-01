@@ -1,5 +1,5 @@
 class PartialParse(object):
-    def __init__(self, sentence):
+    def __init__(self, sentence, idx=None):
         """Initializes this partial parse.
 
         Your code should initialize the following fields:
@@ -21,6 +21,10 @@ class PartialParse(object):
         self.sentence = sentence
 
         ### YOUR CODE HERE
+        self.stack = ["ROOT"]
+        self.buffer = sentence.copy()
+        self.dependencies = []
+        self.idx = idx
         ### END YOUR CODE
 
     def parse_step(self, transition):
@@ -32,6 +36,19 @@ class PartialParse(object):
                         transition.
         """
         ### YOUR CODE HERE
+        if transition == 'S':
+            elem = self.buffer.pop(0)
+            self.stack.append(elem)
+        elif transition == 'LA':
+            w2 = self.stack.pop()
+            w1 = self.stack.pop()
+            self.stack.append(w2)
+            self.dependencies.append((w2, w1))
+        elif transition == 'RA':
+            w2 = self.stack.pop()
+            w1 = self.stack.pop()
+            self.stack.append(w1)
+            self.dependencies.append((w1, w2))
         ### END YOUR CODE
 
     def parse(self, transitions):
@@ -46,6 +63,9 @@ class PartialParse(object):
         for transition in transitions:
             self.parse_step(transition)
         return self.dependencies
+
+    def completed(self):
+        return (not self.buffer) and len(self.stack) == 1
 
 
 def minibatch_parse(sentences, model, batch_size):
@@ -66,6 +86,22 @@ def minibatch_parse(sentences, model, batch_size):
     """
 
     ### YOUR CODE HERE
+    partial_parses = [PartialParse(sent, idx) for idx, sent in enumerate(sentences)]
+    unfinished_parses = partial_parses
+    dependencies = [None] * len(sentences)
+
+    # While unfinished_parses is not empty
+    while unfinished_parses:
+        batch = unfinished_parses[:batch_size]
+        transitions = model.predict(batch)
+
+        assert len(transitions) == len(batch)
+        for pp, trans in zip(batch, transitions):
+            pp.parse_step(trans)
+            if pp.completed():
+                dependencies[pp.idx] = pp.dependencies
+
+        unfinished_parses = [p for p in unfinished_parses if not p.completed()]
     ### END YOUR CODE
 
     return dependencies
@@ -85,7 +121,7 @@ def test_step(name, transition, stack, buf, deps,
         "{:} test resulted in buffer {:}, expected {:}".format(name, buf, ex_buf)
     assert deps == ex_deps, \
         "{:} test resulted in dependency list {:}, expected {:}".format(name, deps, ex_deps)
-    print "{:} test passed!".format(name)
+    print("{:} test passed!".format(name))
 
 
 def test_parse_step():
@@ -112,7 +148,7 @@ def test_parse():
         "parse test resulted in dependencies {:}, expected {:}".format(dependencies, expected)
     assert tuple(sentence) == ("parse", "this", "sentence"), \
         "parse test failed: the input sentence should not be modified"
-    print "parse test passed!"
+    print("parse test passed!")
 
 
 class DummyModel(object):
@@ -149,7 +185,7 @@ def test_minibatch_parse():
                       (('only', 'ROOT'), ('only', 'arcs'), ('only', 'left')))
     test_dependencies("minibatch_parse", deps[3],
                       (('again', 'ROOT'), ('again', 'arcs'), ('again', 'left'), ('again', 'only')))
-    print "minibatch_parse test passed!"
+    print("minibatch_parse test passed!")
 
 if __name__ == '__main__':
     test_parse_step()
