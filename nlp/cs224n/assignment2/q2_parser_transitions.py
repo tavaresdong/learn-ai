@@ -35,6 +35,10 @@ class PartialParse(object):
                         and right-arc transitions. You can assume the provided transition is a legal
                         transition.
         """
+        # Won't do any transition if already completed
+        if self.completed():
+            return
+
         ### YOUR CODE HERE
         if transition == 'S':
             elem = self.buffer.pop(0)
