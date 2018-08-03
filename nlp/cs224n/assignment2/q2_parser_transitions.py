@@ -1,5 +1,5 @@
 class PartialParse(object):
-    def __init__(self, sentence, idx=None):
+    def __init__(self, sentence):
         """Initializes this partial parse.
 
         Your code should initialize the following fields:
@@ -24,7 +24,6 @@ class PartialParse(object):
         self.stack = ["ROOT"]
         self.buffer = sentence.copy()
         self.dependencies = []
-        self.idx = idx
         ### END YOUR CODE
 
     def parse_step(self, transition):
@@ -35,9 +34,6 @@ class PartialParse(object):
                         and right-arc transitions. You can assume the provided transition is a legal
                         transition.
         """
-        # Won't do any transition if already completed
-        if self.completed():
-            return
 
         ### YOUR CODE HERE
         if transition == 'S':
@@ -90,22 +86,24 @@ def minibatch_parse(sentences, model, batch_size):
     """
 
     ### YOUR CODE HERE
-    partial_parses = [PartialParse(sent, idx) for idx, sent in enumerate(sentences)]
+    partial_parses = [PartialParse(sent) for idx, sent in enumerate(sentences)]
     unfinished_parses = partial_parses
-    dependencies = [None] * len(sentences)
 
     # While unfinished_parses is not empty
-    while unfinished_parses:
-        batch = unfinished_parses[:batch_size]
-        transitions = model.predict(batch)
+    while len(unfinished_parses) > 0:
+        minibatch = unfinished_parses[:batch_size]
 
-        assert len(transitions) == len(batch)
-        for pp, trans in zip(batch, transitions):
-            pp.parse_step(trans)
-            if pp.completed():
-                dependencies[pp.idx] = pp.dependencies
+        while len(minibatch) > 0:
+            transitions = model.predict(minibatch)
+            for idx, action in enumerate(transitions):
+                minibatch[idx].parse_step(action)
 
-        unfinished_parses = [p for p in unfinished_parses if not p.completed()]
+            minibatch = [p for p in minibatch if len(p.stack) > 1 or len(p.buffer) > 0]
+
+
+        unfinished_parses = unfinished_parses[batch_size:]
+
+    dependencies = [p.dependencies for p in partial_parses]
     ### END YOUR CODE
 
     return dependencies
