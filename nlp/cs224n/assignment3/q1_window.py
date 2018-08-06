@@ -11,6 +11,7 @@ import argparse
 import sys
 import time
 import logging
+import itertools
 from datetime import datetime
 
 import tensorflow as tf
@@ -93,11 +94,18 @@ def make_windowed_data(data, start, end, window_size = 1):
          ...
          ]
     """
-
+    # Insert start and end sequences to all the sentences
+    start_seq = [start for x in range(window_size)]
+    end_seq = [end for x in range(window_size)]
     windowed_data = []
     for sentence, labels in data:
 		### YOUR CODE HERE (5-20 lines)
-
+        sentence = start_seq + sentence + end_seq
+        flatten_data = list(itertools.chain.from_iterable(sentence))
+        for idx in range(len(sentence) - 2 * window_size):
+            feature_vec = flatten_data[2 * idx : 2 * (idx + (2 * window_size + 1))]
+            label = labels[idx]
+            windowed_data.append((feature_vec, label))
 		### END YOUR CODE
     return windowed_data
 
@@ -153,7 +161,7 @@ class WindowModel(NERModel):
             feed_dict: The feed dictionary mapping from placeholders to values.
         """
         ### YOUR CODE HERE (~5-10 lines)
-         
+
         ### END YOUR CODE
         return feed_dict
 
@@ -174,9 +182,9 @@ class WindowModel(NERModel):
             embeddings: tf.Tensor of shape (None, n_window_features*embed_size)
         """
         ### YOUR CODE HERE (!3-5 lines)
-                                                             
-                                  
-                                                                                                                 
+
+
+
         ### END YOUR CODE
         return embeddings
 
@@ -225,7 +233,7 @@ class WindowModel(NERModel):
             loss: A 0-d tensor (scalar)
         """
         ### YOUR CODE HERE (~2-5 lines)
-                                   
+
         ### END YOUR CODE
         return loss
 
