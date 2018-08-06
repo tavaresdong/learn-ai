@@ -7,7 +7,7 @@ import pdb
 import logging
 
 import tensorflow as tf
-from util import ConfusionMatrix, Progbar, minibatches
+from util import ConfusionMatrix, Progbar, minibatches, get_minibatches
 from data_util import get_chunks
 from model import Model
 from defs import LBLS
@@ -102,7 +102,7 @@ class NERModel(Model):
             # You may use the progress bar to monitor the training progress
             # Addition of progress bar will not be graded, but may help when debugging
             prog = Progbar(target=1 + int(len(train_examples) / self.config.batch_size))
-			
+
 			# The general idea is to loop over minibatches from train_examples, and run train_on_batch inside the loop
 			# Hint: train_examples could be a list containing the feature data and label data
 			# Read the doc for utils.get_minibatches to find out how to use it.
@@ -110,6 +110,10 @@ class NERModel(Model):
                         # [features, labels]. This makes expanding tuples into arguments (* operator) handy
 
             ### YOUR CODE HERE (2-3 lines)
+            training_features = [feature for (feature, label) in train_examples]
+            training_labels = [label for (_, label) in train_examples]
+            for feature_batch, labels_batch in get_minibatches([training_features, training_labels], self.config.batch_size):
+                self.train_on_batch(sess, feature_batch, labels_batch)
 
             ### END YOUR CODE
 
@@ -120,7 +124,7 @@ class NERModel(Model):
             logger.info("Entity level P/R/F1: %.2f/%.2f/%.2f", *entity_scores)
 
             score = entity_scores[-1]
-            
+
             if score > best_score:
                 best_score = score
                 if saver:
