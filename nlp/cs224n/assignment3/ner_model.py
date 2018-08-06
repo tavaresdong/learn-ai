@@ -110,10 +110,11 @@ class NERModel(Model):
                         # [features, labels]. This makes expanding tuples into arguments (* operator) handy
 
             ### YOUR CODE HERE (2-3 lines)
-            training_features = [feature for (feature, label) in train_examples]
-            training_labels = [label for (_, label) in train_examples]
-            for feature_batch, labels_batch in get_minibatches([training_features, training_labels], self.config.batch_size):
-                self.train_on_batch(sess, feature_batch, labels_batch)
+            #training_features = [feature for (feature, _) in train_examples]
+            #training_labels = [label for (_, label) in train_examples]
+            for i, batch in enumerate(minibatches(train_examples, self.config.batch_size)):
+                loss = self.train_on_batch(sess, *batch)
+                prog.update(i+1, [("train loss", loss)])
 
             ### END YOUR CODE
 
