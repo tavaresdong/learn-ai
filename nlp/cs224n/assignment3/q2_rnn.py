@@ -4,9 +4,6 @@
 Q2: Recurrent neural nets for NER
 """
 
-
-
-
 import argparse
 import logging
 import sys
@@ -88,7 +85,7 @@ def pad_sequences(data, max_length):
             Manning is amazing" and labels "PER PER O O" would become
             ([[1,9], [2,9], [3,8], [4,8]], [1, 1, 4, 4]). Here "Chris"
             the word has been featurized as "[1, 9]", and "[1, 1, 4, 4]"
-            is the list of labels. 
+            is the list of labels.
         max_length: the desired length for all input/output sequences.
     Returns:
         a new list of data points of the structure (sentence', labels', mask).
@@ -103,7 +100,16 @@ def pad_sequences(data, max_length):
 
     for sentence, labels in data:
         ### YOUR CODE HERE (~4-6 lines)
-        pass
+        mask = [True] * len(sentence)
+        if len(sentence) < max_length:
+            pad_len = max_length - len(sentence)
+            pad_words = [zero_vector for i in range(pad_len)]
+            pad_labels = [zero_label for i in range(pad_len)]
+            pad_masks = [False for i in range(pad_len)]
+            ret.append((sentence + pad_words, labels + pad_labels, mask + pad_masks))
+        else:
+            ret.append((sentence[:max_length], labels[:max_length], mask[:max_length]))
+
         ### END YOUR CODE ###
     return ret
 
