@@ -293,6 +293,10 @@ class RNNModel(NERModel):
 
         # Make sure to reshape @preds here.
         ### YOUR CODE HERE (~2-4 lines)
+        # stack: a list of length N (A, B, C) to (N, A, B, C)
+        # if axis = 1, then output is of shape (A, N, B, C)
+        # stack will stack a list of tensor rank R to a new tensor of 
+        # rank R+1
         preds = tf.stack(preds, axis=1)
         ### END YOUR CODE
 
@@ -319,7 +323,7 @@ class RNNModel(NERModel):
         masked_preds = tf.boolean_mask(preds, self.mask_placeholder)
         softmax_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
             labels = masked_labels,
-            logits =masked_preds
+            logits = masked_preds
         )
 
         loss = tf.reduce_mean(softmax_loss)
